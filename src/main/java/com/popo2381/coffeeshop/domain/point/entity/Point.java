@@ -28,4 +28,12 @@ public class Point extends BaseEntity {
         this.user = user;
         this.balance = balance;
     }
+
+    public static Point create(User user) {
+        return new Point(user, 0);
+    }
+
+    public void charge(int amount) {
+        this.balance += amount;
+    }
 }
