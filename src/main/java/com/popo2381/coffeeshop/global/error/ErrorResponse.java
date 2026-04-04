@@ -13,9 +13,9 @@ public record ErrorResponse(
     public static ErrorResponse from(ErrorCode errorCode) {
         return new ErrorResponse(
                 LocalDateTime.now(),
-                errorCode.status().value(),
-                errorCode.code(),
-                errorCode.message()
+                errorCode.getStatus().value(),
+                errorCode.getCode(),
+                errorCode.getMessage()
         );
     }
 }

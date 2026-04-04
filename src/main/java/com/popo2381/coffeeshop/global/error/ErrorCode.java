@@ -5,9 +5,9 @@ import org.springframework.http.HttpStatus;
 // 도메인별 ErrorCode enum이 공통으로 구현하는 인터페이스
 public interface ErrorCode {
 
-    HttpStatus status();
+    HttpStatus getStatus();
 
-    String code();
+    String getCode();
 
-    String message();
+    String getMessage();
 }
