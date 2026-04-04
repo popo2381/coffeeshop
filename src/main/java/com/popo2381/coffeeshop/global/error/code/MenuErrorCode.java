@@ -1,7 +1,7 @@
 package com.popo2381.coffeeshop.global.error.code;
 
-import lombok.Getter;
 import com.popo2381.coffeeshop.global.error.ErrorCode;
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 @Getter
