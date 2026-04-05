@@ -11,14 +11,11 @@ public enum MenuErrorCode implements ErrorCode {
 
     private final HttpStatus status;
     private final String message;
+    private final String code;
 
     MenuErrorCode(HttpStatus status, String message) {
         this.status = status;
         this.message = message;
-    }
-
-    @Override
-    public String getCode() {
-        return name();
+        this.code = name();
     }
 }
