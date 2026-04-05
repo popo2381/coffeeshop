@@ -4,6 +4,7 @@ import com.popo2381.coffeeshop.domain.menu.entity.Menu;
 import com.popo2381.coffeeshop.domain.menu.repository.MenuRepository;
 import com.popo2381.coffeeshop.domain.order.dto.response.OrderCreateResponse;
 import com.popo2381.coffeeshop.domain.order.dto.response.OrderDetailResponse;
+import com.popo2381.coffeeshop.domain.order.dto.response.OrderSummaryResponse;
 import com.popo2381.coffeeshop.domain.order.entity.Order;
 import com.popo2381.coffeeshop.domain.order.external.OrderEventPayload;
 import com.popo2381.coffeeshop.domain.order.external.OrderEventSender;
@@ -22,6 +23,8 @@ import com.popo2381.coffeeshop.global.error.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -83,5 +86,12 @@ public class OrderService {
                 .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
 
         return OrderDetailResponse.from(order);
+    }
+
+    // 사용자별 주문 목록 조회
+    public List<OrderSummaryResponse> getOrders(Long userId) {
+        return orderRepository.findByUserIdOrderByCreatedAtDesc(userId).stream()
+                .map(OrderSummaryResponse::from)
+                .toList();
     }
 }
