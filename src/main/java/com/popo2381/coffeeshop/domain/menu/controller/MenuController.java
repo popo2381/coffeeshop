@@ -18,11 +18,13 @@ public class MenuController {
 
     private final MenuService menuService;
 
+    // 메뉴 단건 조회
     @GetMapping
     public List<MenuResponse> getMenus() {
         return menuService.getMenus();
     }
 
+    // 최근 7일 인기 메뉴 Top3 조회
     @GetMapping("/popular")
     public ResponseEntity<List<PopularMenuResponse>> getPopularMenus() {
         return ResponseEntity.ok(menuService.getPopularMenus());
