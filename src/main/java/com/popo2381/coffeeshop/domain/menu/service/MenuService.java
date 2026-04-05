@@ -1,6 +1,6 @@
 package com.popo2381.coffeeshop.domain.menu.service;
 
-import com.popo2381.coffeeshop.domain.menu.dto.MenuResponse;
+import com.popo2381.coffeeshop.domain.menu.dto.response.MenuResponse;
 import com.popo2381.coffeeshop.domain.menu.repository.MenuRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

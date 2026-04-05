@@ -55,11 +55,11 @@ dependencies {
 
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-
-// generated 디렉토리 정리
+// generated 디렉토리에 QClass 생성
 tasks.withType(JavaCompile).configureEach {
     options.generatedSourceOutputDirectory = file(generated)
 }

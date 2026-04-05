@@ -1,4 +1,4 @@
-package com.popo2381.coffeeshop.domain.menu.dto;
+package com.popo2381.coffeeshop.domain.menu.dto.response;
 
 import com.popo2381.coffeeshop.domain.menu.entity.Menu;
 import lombok.Getter;

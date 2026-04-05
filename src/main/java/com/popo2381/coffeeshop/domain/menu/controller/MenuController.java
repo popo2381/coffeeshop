@@ -1,6 +1,6 @@
 package com.popo2381.coffeeshop.domain.menu.controller;
 
-import com.popo2381.coffeeshop.domain.menu.dto.MenuResponse;
+import com.popo2381.coffeeshop.domain.menu.dto.response.MenuResponse;
 import com.popo2381.coffeeshop.domain.menu.service.MenuService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
