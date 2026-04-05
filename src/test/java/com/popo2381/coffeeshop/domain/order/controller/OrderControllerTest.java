@@ -1,10 +1,16 @@
 package com.popo2381.coffeeshop.domain.order.controller;
 
+import com.popo2381.coffeeshop.domain.menu.entity.Menu;
+import com.popo2381.coffeeshop.domain.menu.repository.MenuRepository;
+import com.popo2381.coffeeshop.domain.order.entity.Order;
+import com.popo2381.coffeeshop.domain.order.entity.OrderStatus;
 import com.popo2381.coffeeshop.domain.order.external.OrderEventPayload;
 import com.popo2381.coffeeshop.domain.order.external.OrderEventSender;
 import com.popo2381.coffeeshop.domain.order.repository.OrderRepository;
 import com.popo2381.coffeeshop.domain.point.repository.PointHistoryRepository;
 import com.popo2381.coffeeshop.domain.point.repository.PointRepository;
+import com.popo2381.coffeeshop.domain.user.entity.User;
+import com.popo2381.coffeeshop.domain.user.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -15,6 +21,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.times;
@@ -36,6 +43,12 @@ class OrderControllerTest {
 
     @Autowired
     private PointRepository pointRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private MenuRepository menuRepository;
 
     @Autowired
     private PointHistoryRepository pointHistoryRepository;
@@ -204,5 +217,36 @@ class OrderControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(requestBody))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("주문 단건 조회에 성공한다")
+    void getOrder() throws Exception {
+        // given
+        User user = userRepository.findById(1L).orElseThrow();
+        Menu menu = menuRepository.findById(1L).orElseThrow();
+
+        Order order = Order.create(user, menu, menu.getPrice());
+        orderRepository.save(order);
+
+        // when & then
+        mockMvc.perform(get("/api/v1/orders/{orderId}", order.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.orderId").value(order.getId()))
+                .andExpect(jsonPath("$.userId").value(user.getId()))
+                .andExpect(jsonPath("$.menuId").value(menu.getId()))
+                .andExpect(jsonPath("$.menuName").value(menu.getName()))
+                .andExpect(jsonPath("$.price").value(menu.getPrice()))
+                .andExpect(jsonPath("$.status").value(OrderStatus.COMPLETED.name()));
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 주문 조회 시 예외가 발생한다")
+    void getOrder_fail_whenOrderNotFound() throws Exception {
+        // when & then
+        mockMvc.perform(get("/api/v1/orders/{orderId}", 99999L))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("ORDER_NOT_FOUND"))
+                .andExpect(jsonPath("$.message").value("존재하지 않는 주문입니다"));
     }
 }
