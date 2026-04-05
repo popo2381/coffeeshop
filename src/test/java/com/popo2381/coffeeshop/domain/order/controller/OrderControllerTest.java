@@ -1,18 +1,24 @@
 package com.popo2381.coffeeshop.domain.order.controller;
 
+import com.popo2381.coffeeshop.domain.order.external.OrderEventPayload;
+import com.popo2381.coffeeshop.domain.order.external.OrderEventSender;
 import com.popo2381.coffeeshop.domain.order.repository.OrderRepository;
 import com.popo2381.coffeeshop.domain.point.repository.PointHistoryRepository;
 import com.popo2381.coffeeshop.domain.point.repository.PointRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -33,6 +39,9 @@ class OrderControllerTest {
 
     @Autowired
     private PointHistoryRepository pointHistoryRepository;
+
+    @MockitoBean
+    private OrderEventSender orderEventSender;
 
     @Test
     @DisplayName("주문을 생성할 수 있다")
@@ -151,6 +160,35 @@ class OrderControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("INSUFFICIENT_POINT"))
                 .andExpect(jsonPath("$.message").value("포인트가 부족합니다"));
+    }
+
+    @Test
+    @DisplayName("주문 성공 시 주문 이벤트를 전송한다")
+    void sendOrderEventWhenOrderCreated() throws Exception {
+        // given
+        chargePoint(1L, 10000);
+
+        String requestBody = """
+                {
+                  "userId": 1,
+                  "menuId": 1
+                }
+                """;
+
+        // when
+        mockMvc.perform(post("/api/v1/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody))
+                .andExpect(status().isCreated());
+
+        // then
+        ArgumentCaptor<OrderEventPayload> captor = ArgumentCaptor.forClass(OrderEventPayload.class);
+        verify(orderEventSender, times(1)).send(captor.capture());
+
+        OrderEventPayload payload = captor.getValue();
+        assertThat(payload.userId()).isEqualTo(1L);
+        assertThat(payload.menuId()).isEqualTo(1L);
+        assertThat(payload.price()).isEqualTo(3000);
     }
 
     // 주문 테스트 전에 포인트 충전 API를 먼저 호출해서 테스트 흐름을 맞춘다.

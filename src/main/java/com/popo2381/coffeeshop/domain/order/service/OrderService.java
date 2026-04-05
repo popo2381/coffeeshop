@@ -4,6 +4,8 @@ import com.popo2381.coffeeshop.domain.menu.entity.Menu;
 import com.popo2381.coffeeshop.domain.menu.repository.MenuRepository;
 import com.popo2381.coffeeshop.domain.order.dto.response.OrderCreateResponse;
 import com.popo2381.coffeeshop.domain.order.entity.Order;
+import com.popo2381.coffeeshop.domain.order.external.OrderEventPayload;
+import com.popo2381.coffeeshop.domain.order.external.OrderEventSender;
 import com.popo2381.coffeeshop.domain.order.repository.OrderRepository;
 import com.popo2381.coffeeshop.domain.point.entity.Point;
 import com.popo2381.coffeeshop.domain.point.entity.PointHistory;
@@ -29,6 +31,7 @@ public class OrderService {
     private final PointRepository pointRepository;
     private final OrderRepository orderRepository;
     private final PointHistoryRepository pointHistoryRepository;
+    private final OrderEventSender orderEventSender;
 
     public OrderCreateResponse create(Long userId, Long menuId) {
         // 1. 사용자 조회
@@ -53,7 +56,14 @@ public class OrderService {
         // 6. 포인트 사용 이력 저장
         pointHistoryRepository.save(PointHistory.use(user, menu.getPrice()));
 
-        // 7. 응답 반환
+        // 7. 주문 내역을 외부 데이터 수집 플랫폼으로 전송
+        orderEventSender.send(new OrderEventPayload(
+                user.getId(),
+                menu.getId(),
+                menu.getPrice()
+        ));
+
+        // 8. 응답 반환
         return new OrderCreateResponse(
                 savedOrder.getId(),
                 user.getId(),
