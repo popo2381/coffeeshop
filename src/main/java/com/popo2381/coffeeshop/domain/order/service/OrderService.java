@@ -3,6 +3,7 @@ package com.popo2381.coffeeshop.domain.order.service;
 import com.popo2381.coffeeshop.domain.menu.entity.Menu;
 import com.popo2381.coffeeshop.domain.menu.repository.MenuRepository;
 import com.popo2381.coffeeshop.domain.order.dto.response.OrderCreateResponse;
+import com.popo2381.coffeeshop.domain.order.dto.response.OrderDetailResponse;
 import com.popo2381.coffeeshop.domain.order.entity.Order;
 import com.popo2381.coffeeshop.domain.order.external.OrderEventPayload;
 import com.popo2381.coffeeshop.domain.order.external.OrderEventSender;
@@ -14,6 +15,7 @@ import com.popo2381.coffeeshop.domain.point.repository.PointRepository;
 import com.popo2381.coffeeshop.domain.user.entity.User;
 import com.popo2381.coffeeshop.domain.user.repository.UserRepository;
 import com.popo2381.coffeeshop.global.error.code.MenuErrorCode;
+import com.popo2381.coffeeshop.global.error.code.OrderErrorCode;
 import com.popo2381.coffeeshop.global.error.code.PointErrorCode;
 import com.popo2381.coffeeshop.global.error.code.UserErrorCode;
 import com.popo2381.coffeeshop.global.error.exception.BusinessException;
@@ -33,6 +35,7 @@ public class OrderService {
     private final PointHistoryRepository pointHistoryRepository;
     private final OrderEventSender orderEventSender;
 
+    // 주문 생성
     public OrderCreateResponse create(Long userId, Long menuId) {
         // 1. 사용자 조회
         User user = userRepository.findById(userId)
@@ -71,5 +74,14 @@ public class OrderService {
                 menu.getPrice(),
                 point.getBalance()
         );
+    }
+
+    // 주문 단건 조회
+    @Transactional(readOnly = true)
+    public OrderDetailResponse getOrder(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new BusinessException(OrderErrorCode.ORDER_NOT_FOUND));
+
+        return OrderDetailResponse.from(order);
     }
 }
