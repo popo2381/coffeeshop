@@ -249,4 +249,30 @@ class OrderControllerTest {
                 .andExpect(jsonPath("$.code").value("ORDER_NOT_FOUND"))
                 .andExpect(jsonPath("$.message").value("존재하지 않는 주문입니다"));
     }
+
+    @Test
+    @DisplayName("사용자별 주문 목록을 최신순으로 조회한다")
+    void getOrders() throws Exception {
+        // given
+        User user = userRepository.findById(1L).orElseThrow();
+        Menu firstMenu = menuRepository.findById(1L).orElseThrow();
+        Menu secondMenu = menuRepository.findById(2L).orElseThrow();
+
+        Order firstOrder = Order.create(user, firstMenu, firstMenu.getPrice());
+        Order secondOrder = Order.create(user, secondMenu, secondMenu.getPrice());
+
+        orderRepository.save(firstOrder);
+        orderRepository.save(secondOrder);
+
+        // when & then
+        mockMvc.perform(get("/api/v1/orders").param("userId", "1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].orderId").value(secondOrder.getId()))
+                .andExpect(jsonPath("$[0].menuId").value(secondMenu.getId()))
+                .andExpect(jsonPath("$[0].menuName").value(secondMenu.getName()))
+                .andExpect(jsonPath("$[1].orderId").value(firstOrder.getId()))
+                .andExpect(jsonPath("$[1].menuId").value(firstMenu.getId()))
+                .andExpect(jsonPath("$[1].menuName").value(firstMenu.getName()));
+    }
 }
