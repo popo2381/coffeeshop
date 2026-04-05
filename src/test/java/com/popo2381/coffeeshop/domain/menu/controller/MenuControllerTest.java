@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.lang.reflect.Field;
@@ -39,6 +40,9 @@ class MenuControllerTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
     @Test
     @DisplayName("메뉴 목록을 조회할 수 있다")
     void getMenus() throws Exception {
@@ -59,17 +63,17 @@ class MenuControllerTest {
         Menu latte = menuRepository.findById(2L).orElseThrow();
         Menu mocha = menuRepository.findById(3L).orElseThrow();
 
-        saveOrder(user, americano, OrderStatus.COMPLETED, LocalDateTime.now().minusDays(1));
-        saveOrder(user, americano, OrderStatus.COMPLETED, LocalDateTime.now().minusDays(2));
-        saveOrder(user, americano, OrderStatus.COMPLETED, LocalDateTime.now().minusDays(3));
+        saveOrder(user, americano, LocalDateTime.now().minusDays(1));
+        saveOrder(user, americano, LocalDateTime.now().minusDays(2));
+        saveOrder(user, americano, LocalDateTime.now().minusDays(3));
 
-        saveOrder(user, latte, OrderStatus.COMPLETED, LocalDateTime.now().minusDays(1));
-        saveOrder(user, latte, OrderStatus.COMPLETED, LocalDateTime.now().minusDays(2));
+        saveOrder(user, latte, LocalDateTime.now().minusDays(1));
+        saveOrder(user, latte, LocalDateTime.now().minusDays(2));
 
-        saveOrder(user, mocha, OrderStatus.COMPLETED, LocalDateTime.now().minusDays(1));
+        saveOrder(user, mocha, LocalDateTime.now().minusDays(1));
 
         // 7일 초과 데이터 -> 제외되어야 함
-        saveOrder(user, mocha, OrderStatus.COMPLETED, LocalDateTime.now().minusDays(8));
+        saveOrder(user, mocha, LocalDateTime.now().minusDays(8));
 
         // when & then
         mockMvc.perform(get("/api/v1/menus/popular"))
@@ -82,17 +86,19 @@ class MenuControllerTest {
                 .andExpect(jsonPath("$[2].orderCount").value(1));
     }
 
-    private void saveOrder(User user, Menu menu, OrderStatus status, LocalDateTime createdAt) throws Exception {
+    private void saveOrder(User user, Menu menu, LocalDateTime createdAt) throws Exception {
         Order order = Order.create(user, menu, menu.getPrice());
 
         Field statusField = Order.class.getDeclaredField("status");
         statusField.setAccessible(true);
-        statusField.set(order, status);
+        statusField.set(order, OrderStatus.COMPLETED);
 
-        Field createdAtField = order.getClass().getSuperclass().getDeclaredField("createdAt");
-        createdAtField.setAccessible(true);
-        createdAtField.set(order, createdAt);
+        Order savedOrder = orderRepository.saveAndFlush(order);
 
-        orderRepository.save(order);
+        jdbcTemplate.update(
+                "update orders set created_at = ? where id = ?",
+                createdAt,
+                savedOrder.getId()
+        );
     }
 }
