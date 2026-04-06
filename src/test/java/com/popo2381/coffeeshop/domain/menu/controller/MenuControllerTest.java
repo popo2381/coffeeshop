@@ -48,9 +48,10 @@ class MenuControllerTest {
     void getMenus() throws Exception {
         mockMvc.perform(get("/api/v1/menus"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(3)))
+                .andExpect(jsonPath("$", hasSize(6)))
                 .andExpect(jsonPath("$[*].name",
-                        containsInAnyOrder("아메리카노", "카페라떼", "카푸치노")));
+                        containsInAnyOrder("아메리카노", "카페라떼", "카푸치노",
+                                "마끼아또", "에스프레소", "카페모카")));
     }
 
     @Test

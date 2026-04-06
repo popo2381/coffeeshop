@@ -14,7 +14,7 @@ insert into menus (name, price, created_at, updated_at)
 values ('에스프레소', 3500, now(), now());
 
 insert into menus (name, price, created_at, updated_at)
-values ('아메리카노', 2500, now(), now());
+values ('카페모카', 2500, now(), now());
 
 INSERT INTO users (id, created_at, updated_at)
 VALUES (1, NOW(), NOW());

@@ -1,7 +1,9 @@
 package com.popo2381.coffeeshop.domain.point.controller;
 
+import com.popo2381.coffeeshop.domain.point.entity.PointHistory;
 import com.popo2381.coffeeshop.domain.point.repository.PointHistoryRepository;
 import com.popo2381.coffeeshop.domain.point.repository.PointRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +32,12 @@ class PointControllerTest {
     @Autowired
     private PointHistoryRepository pointHistoryRepository;
 
+    @BeforeEach
+    void setUp() {
+        pointHistoryRepository.deleteAll();
+        pointRepository.deleteAll();
+    }
+
     @Test
     @DisplayName("포인트를 충전할 수 있다")
     void chargePoint() throws Exception {
@@ -52,11 +60,18 @@ class PointControllerTest {
 
         // 포인트 엔티티가 생성되고 잔액이 반영되었는지 확인
         assertThat(pointRepository.findByUserId(1L)).isPresent();
-        assertThat(pointRepository.findByUserId(1L).get().getBalance()).isEqualTo(5000);
+        assertThat(pointRepository.findByUserId(1L).orElseThrow().getBalance()).isEqualTo(5000);
 
         // 포인트 충전 이력이 저장되었는지 확인
-        assertThat(pointHistoryRepository.findAll()).hasSize(1);
-        assertThat(pointHistoryRepository.findAll().get(0).getAmount()).isEqualTo(5000);
+        PointHistory history = pointHistoryRepository.findAll().stream()
+                .filter(pointHistory -> pointHistory.getUser().getId().equals(1L))
+                .findFirst()
+                .orElseThrow();
+
+        assertThat(pointHistoryRepository.findAll().stream()
+                .filter(pointHistory -> pointHistory.getUser().getId().equals(1L))
+                .count()).isEqualTo(1);
+        assertThat(history.getAmount()).isEqualTo(5000);
     }
 
     @Test
