@@ -34,7 +34,7 @@ public class PointService {
                 .orElseThrow(() -> new BusinessException(UserErrorCode.USER_NOT_FOUND));
 
         // 3. 사용자 포인트 조회 또는 최초 생성
-        Point point = pointRepository.findByUserId(userId)
+        Point point = pointRepository.findByUserIdForUpdate(userId)
                 .orElseGet(() -> pointRepository.save(Point.create(user)));
 
         // 4. 포인트 충전

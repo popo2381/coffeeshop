@@ -49,7 +49,7 @@ public class OrderService {
                 .orElseThrow(() -> new BusinessException(MenuErrorCode.MENU_NOT_FOUND));
 
         // 3. 사용자 포인트 조회
-        Point point = pointRepository.findByUserId(userId)
+        Point point = pointRepository.findByUserIdForUpdate(userId)
                 .orElseThrow(() -> new BusinessException(PointErrorCode.POINT_NOT_FOUND));
 
         // 4. 메뉴 가격만큼 포인트 차감
